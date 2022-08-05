@@ -5,6 +5,7 @@ import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
 import android.media.projection.MediaProjection;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Surface;
 
@@ -62,6 +63,7 @@ public class H264Encoder extends Thread{
 
     }
 
+    private long lastKeyFrameTime ;
     @Override
     public void run() {
         super.run();
@@ -75,6 +77,15 @@ public class H264Encoder extends Thread{
 
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (isLiving) {
+
+            //超过2秒，强制输出I帧。
+            if (System.currentTimeMillis() - lastKeyFrameTime > 2000){
+                Bundle b = new Bundle();
+                b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME , 0);
+                mediaCodec.setParameters(b);
+                lastKeyFrameTime = System.currentTimeMillis();
+            }
+
             try {
                 int outIndex = mediaCodec.dequeueOutputBuffer(info, 10000);
                 byte[] bytes = new byte[info.size];
