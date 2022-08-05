@@ -86,7 +86,7 @@ void prepareVideo(int8_t *bytes , int16_t len){
     if (spspps == nullptr){
         spspps = (LiveSpspps *)malloc(sizeof(LiveSpspps));
     }
-    if (spspps && (!spspps->pps || !spspps->sps)){
+    if (spspps && ((!spspps->pps) || (!spspps->sps))){
         // find sps
         int spsStart = spsStartIndex(bytes);
         if (spsStart != 0){
