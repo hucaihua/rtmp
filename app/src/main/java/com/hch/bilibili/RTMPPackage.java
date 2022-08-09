@@ -4,6 +4,7 @@ public class RTMPPackage {
 
     public static int  TYPE_VIDEO = 0;
     public static int  TYPE_AUDIO = 1;
+    public static int  TYPE_HEADER = 2;
 
     //    帧数据
     private byte[] buffer;
@@ -35,5 +36,10 @@ public class RTMPPackage {
 
     public int getType() {
         return type;
+    }
+
+    public RTMPPackage setType(int type){
+        this.type = type;
+        return this;
     }
 }

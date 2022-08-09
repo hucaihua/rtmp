@@ -23,6 +23,8 @@ RTMP * rtmp;
 
 RTMPPacket *createSPSPPSPacket();
 
+int sendAudio(jbyte *bytes, jint len, jlong timestamp);
+
 extern "C"
 JNIEXPORT jboolean JNICALL
 Java_com_hch_bilibili_H264Encoder_connectRtmp(JNIEnv *env, jobject thiz, jstring url_) {
@@ -248,14 +250,58 @@ int16_t sendVideo(int8_t *bytes , int16_t len , long timems) {
     return r;
 }
 
+
+RTMPPacket *createAudioPacket(int8_t *bytes, jint len, jlong timestamp) {
+    // 2个字节表示 音频解码信息
+    int bodySize = len + 2;
+    RTMPPacket *p = (RTMPPacket *)malloc(sizeof (RTMPPacket));
+    RTMPPacket_Alloc(p , bodySize);
+    int i = 0;
+    p->m_body[i++] = 0xAF;
+    p->m_body[i++] = 0x01;
+    memcpy(&p->m_body[i++] , bytes , len);
+
+//配置rtmp
+    p->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    p->m_nBodySize = bodySize;
+    //channel自定义
+    p->m_nChannel = 0x02;
+    //采用相对时间戳
+    p->m_hasAbsTimestamp = 0;
+    //对于I帧，它的时间等于编码出来的相对时间戳
+    p->m_nTimeStamp = timestamp;
+    //给服务器做参考的
+    p->m_headerType = RTMP_PACKET_SIZE_LARGE;
+    p->m_nInfoField2 = rtmp->m_stream_id;
+    return p;
+}
+
+int sendAudio(int8_t *bytes , jint len, jlong timestamp) {
+    int r;
+    RTMPPacket * packet = createAudioPacket(bytes , len , timestamp);
+    r = sendPacket(packet);
+    return r;
+}
+
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_hch_bilibili_PackageSender_sendData(JNIEnv *env, jobject thiz, jbyteArray data, jint len, jlong timestamp,
                                              jint type) {
-    LOGI("start send package");
+    LOGI("start send package , type = %d" , type);
     int ret;
     jbyte * bytes = env->GetByteArrayElements(data ,NULL);
-    ret = sendVideo(bytes , len , timestamp);
+    switch (type) {
+        case 0:
+            ret = sendVideo(bytes , len , timestamp);
+            break;
+        case 1:
+            ret = sendAudio(bytes , len , timestamp);
+            break;
+        case 2:
+
+            break;
+    }
+
     env->ReleaseByteArrayElements(data , bytes , 0);
     return ret;
 }

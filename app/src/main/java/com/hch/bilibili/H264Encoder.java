@@ -97,7 +97,7 @@ public class H264Encoder extends Thread{
                     byteBuffer.get(bytes);
                     FileUtils.writeBytes(bytes);
                     FileUtils.writeContent(bytes);
-                    queue.offer(new RTMPPackage(bytes, info.presentationTimeUs / 1000 - startTime));
+                    queue.offer(new RTMPPackage(bytes, info.presentationTimeUs / 1000 - startTime).setType(RTMPPackage.TYPE_VIDEO));
                     mediaCodec.releaseOutputBuffer(outIndex, false);
                     Log.d("hch", "queue offer size:"+bytes.length);
                 }

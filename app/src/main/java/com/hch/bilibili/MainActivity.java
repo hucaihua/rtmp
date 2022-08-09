@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
 
     private LinkedBlockingQueue<RTMPPackage> queue = new LinkedBlockingQueue<>();
     PackageSender packageSender;
+    private AudioEncoder audioEncoder;
 
     public boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(new String[]{
                     Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                    Manifest.permission.RECORD_AUDIO,
                     Manifest.permission.CAMERA
             }, 1);
 
@@ -58,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
         mediaProjection = projectionManager.getMediaProjection(resultCode , data);
         h264Encoder = new H264Encoder(mediaProjection,queue);
         h264Encoder.start();
+
+        audioEncoder = new AudioEncoder(queue);
+        audioEncoder.start();
+
         packageSender.start();
     }
 
@@ -70,6 +76,9 @@ public class MainActivity extends AppCompatActivity {
     public void stopLive(View view){
         if (h264Encoder != null){
             h264Encoder.stopLive();
+        }
+        if (audioEncoder != null){
+            audioEncoder.stopLive();
         }
         if (packageSender != null){
             packageSender.stopLive();
