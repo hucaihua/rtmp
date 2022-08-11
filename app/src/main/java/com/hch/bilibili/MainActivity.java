@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         packageSender = new PackageSender(queue);
         mediaProjection = projectionManager.getMediaProjection(resultCode , data);
-        h264Encoder = new H264Encoder(mediaProjection,queue);
+        h264Encoder = new MediaProjectionEncoder(mediaProjection,queue);
         h264Encoder.start();
 
         audioEncoder = new AudioEncoder(queue);

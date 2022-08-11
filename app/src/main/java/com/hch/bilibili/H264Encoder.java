@@ -1,13 +1,10 @@
 package com.hch.bilibili;
 
-import android.hardware.display.DisplayManager;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.media.projection.MediaProjection;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Surface;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -18,31 +15,27 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author hucaihua@bytedance.com
  */
 public class H264Encoder extends Thread{
-
     private final LinkedBlockingQueue<RTMPPackage> queue;
-    MediaProjection mediaProjection;
+
     MediaCodec mediaCodec;
-    private int width;
-    private int height;
+    protected int width;
+    protected int height;
 
 
     private boolean isLiving = false;
     long startTime = 0;
 
 
-    public H264Encoder(MediaProjection mediaProjection, LinkedBlockingQueue<RTMPPackage> queue) {
-        this.mediaProjection = mediaProjection;
+    public H264Encoder(LinkedBlockingQueue<RTMPPackage> queue) {
         this.width = 640;
         this.height = 1920;
         this.queue = queue;
-        configEncodeCodec();
-
+        mediaCodec = configEncodeCodec();
     }
 
     //帧率 ， I帧间隔 ， 码率 ， 数据格式
     // mediaCodec负责提供surface给mediaProjection使用
-    private void configEncodeCodec() {
-
+    protected MediaCodec configEncodeCodec(){
         MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
@@ -53,14 +46,10 @@ public class H264Encoder extends Thread{
         try{
             mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
             mediaCodec.configure(mediaFormat , null , null , MediaCodec.CONFIGURE_FLAG_ENCODE);
-            Surface surface = mediaCodec.createInputSurface();
-            //到此已经完成录屏到写入codec提供的surface的过程
-            mediaProjection.createVirtualDisplay("project-encoder" ,width,height , 2 ,
-                    DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC , surface , null , null);
         }catch (Exception e){
             e.printStackTrace();
         }
-
+        return mediaCodec;
     }
 
     private long lastKeyFrameTime ;

@@ -14,8 +14,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by hucaihua on 2022/8/9
- *
- * @author hucaihua@bytedance.com
  */
 public class AudioEncoder extends Thread {
     private final LinkedBlockingQueue<RTMPPackage> queue;
@@ -24,7 +22,6 @@ public class AudioEncoder extends Thread {
     int minBufferSize;
     long startTime = 0;
 
-    private static String bilibilyRTMPURL = "rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_212228851_21446951&key=59f5fcfb903695f199233e7f2c8112b2&schedule=rtmp&pflag=1";
     private boolean isLiving = false;
 
 
@@ -67,7 +64,7 @@ public class AudioEncoder extends Thread {
         audioRecord.startRecording();
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
-        //告知服务器，准备好音频传输
+        //告知服务器，准备好音频传输，音频推流需要的编码信息
         byte[] audioDecoderSpecificInfo = {0x12,0x08};
         RTMPPackage rtmpPackageHeader = new RTMPPackage(audioDecoderSpecificInfo,0).setType(RTMPPackage.TYPE_HEADER);
         queue.offer(rtmpPackageHeader);
