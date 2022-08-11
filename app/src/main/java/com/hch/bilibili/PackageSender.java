@@ -11,7 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class PackageSender extends Thread{
     LinkedBlockingQueue<RTMPPackage> queue;
-    Thread thread;
     private boolean isLiving = false;
 
     PackageSender(LinkedBlockingQueue<RTMPPackage> queue ){
@@ -27,7 +26,6 @@ public class PackageSender extends Thread{
             while (isLiving){
                 RTMPPackage rtmpPackage = queue.poll();
                 if (rtmpPackage != null) {
-                    Log.d("hch", "queue take package success");
                     sendData(rtmpPackage.getBuffer(), rtmpPackage.getBuffer().length, rtmpPackage.getTms(),
                             rtmpPackage.getType());
                 }
@@ -38,7 +36,7 @@ public class PackageSender extends Thread{
     }
 
 
-    private native int sendData(byte[] data , int len , long timestamp , int type);
+    public native int sendData(byte[] data , int len , long timestamp , int type);
 
     public void stopLive() {
         isLiving = false;

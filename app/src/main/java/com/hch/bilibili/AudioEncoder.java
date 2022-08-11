@@ -65,8 +65,13 @@ public class AudioEncoder extends Thread {
         audioRecord.startRecording();
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
 
+        //告知服务器，准备好音频传输
+        byte[] audioDecoderSpecificInfo = {0x12,0x08};
+        RTMPPackage rtmpPackageHeader = new RTMPPackage(audioDecoderSpecificInfo,0).setType(RTMPPackage.TYPE_HEADER);
+        queue.offer(rtmpPackageHeader);
+        byte[] buffer = new byte[minBufferSize];
+
         while (isLiving){
-            byte[] buffer = new byte[minBufferSize];
             //读取pcm数据
             int len = audioRecord.read(buffer , 0 , buffer.length);
             if (len <= 0){
@@ -83,18 +88,17 @@ public class AudioEncoder extends Thread {
             }
 
             int outputIndex = mediaCodec.dequeueOutputBuffer(bufferInfo , 1000);
-            //输入的一块数据，输出不一定是一块
+            //输入的一块数据，输出不一定是一块。例如在编码原理中，B帧数据经过信源编码器，复合编码器后，会存放到传输缓冲器等待时机后进入传输编码器，等到获取到后面的P帧的时候，才一起输出。
             while (outputIndex >= 0 && isLiving){
                 ByteBuffer byteBuffer = mediaCodec.getOutputBuffer(outputIndex);
                 byte[] encodeAAC = new byte[bufferInfo.size];
                 byteBuffer.get(encodeAAC);
 
-                //时间戳采用相对时间戳，因为服务器需要用相对时间戳
+                //时间戳采用相对时间戳，因为服务器需要用相对时间戳。在rtmp的packet定义中，会需要指定是否是相对时间
                 if (startTime == 0){
                     startTime = bufferInfo.presentationTimeUs / 1000;
                 }
-                RTMPPackage rtmpPackage =
-                        new RTMPPackage(encodeAAC , bufferInfo.presentationTimeUs / 1000 - startTime).setType(RTMPPackage.TYPE_AUDIO);
+                RTMPPackage rtmpPackage = new RTMPPackage(encodeAAC , bufferInfo.presentationTimeUs / 1000 - startTime).setType(RTMPPackage.TYPE_AUDIO);
                 queue.offer(rtmpPackage);
                 mediaCodec.releaseOutputBuffer(outputIndex ,false);
 

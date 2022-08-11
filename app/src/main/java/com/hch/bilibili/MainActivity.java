@@ -7,6 +7,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private LinkedBlockingQueue<RTMPPackage> queue = new LinkedBlockingQueue<>();
     PackageSender packageSender;
     private AudioEncoder audioEncoder;
+    private static String bilibilyRTMPURL="rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_212228851_21446951&key=9a02e8eb340ba9a2c825887422dda816&schedule=rtmp&pflag=1";
 
     public boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
@@ -56,6 +58,11 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK || requestCode != 1) return;
 
+        if (!connectRtmp(bilibilyRTMPURL)) {
+            Log.d("hch", "connect failed");
+            return;
+        }
+
         packageSender = new PackageSender(queue);
         mediaProjection = projectionManager.getMediaProjection(resultCode , data);
         h264Encoder = new H264Encoder(mediaProjection,queue);
@@ -66,6 +73,8 @@ public class MainActivity extends AppCompatActivity {
 
         packageSender.start();
     }
+
+    private native boolean connectRtmp(String url);
 
     public void startLive(View view) {
         projectionManager = (MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);

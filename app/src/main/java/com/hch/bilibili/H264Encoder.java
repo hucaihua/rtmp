@@ -25,7 +25,7 @@ public class H264Encoder extends Thread{
     private int width;
     private int height;
 
-    private static String bilibilyRTMPURL="rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_212228851_21446951&key=59f5fcfb903695f199233e7f2c8112b2&schedule=rtmp&pflag=1";
+
     private boolean isLiving = false;
     long startTime = 0;
 
@@ -70,11 +70,6 @@ public class H264Encoder extends Thread{
         isLiving = true;
         mediaCodec.start();
 
-        if (!connectRtmp(bilibilyRTMPURL)) {
-            Log.d("hch", "connect failed");
-            return;
-        }
-
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (isLiving) {
 
@@ -109,7 +104,6 @@ public class H264Encoder extends Thread{
         Log.d("hch", "live stopped");
     }
 
-    private native boolean connectRtmp(String url);
 
     public void stopLive() {
         isLiving = false;

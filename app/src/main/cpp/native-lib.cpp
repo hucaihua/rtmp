@@ -21,38 +21,13 @@ int ppsFlagLen = 4;
 int spsFLagLen = 4;
 RTMP * rtmp;
 
+const int  TYPE_VIDEO = 0;
+const int  TYPE_AUDIO = 1;
+const int  TYPE_HEADER = 2;
+
 RTMPPacket *createSPSPPSPacket();
 
-int sendAudio(jbyte *bytes, jint len, jlong timestamp);
-
-extern "C"
-JNIEXPORT jboolean JNICALL
-Java_com_hch_bilibili_H264Encoder_connectRtmp(JNIEnv *env, jobject thiz, jstring url_) {
-//能1  不能2 MK  2.3
-    const char *url = env->GetStringUTFChars(url_, 0);
-    int ret;
-//实例化对象
-    rtmp = RTMP_Alloc();
-    RTMP_Init(rtmp);
-    rtmp->Link.timeout = 10;
-    ret =RTMP_SetupURL(rtmp, (char*)url);
-    if (ret == TRUE) {
-        LOGI("RTMP_SetupURL");
-    }
-    RTMP_EnableWrite(rtmp);
-    LOGI("RTMP_EnableWrite");
-
-    ret = RTMP_Connect(rtmp, 0);
-    if (ret == TRUE) {
-        LOGI("RTMP_Connect ");
-    }
-    ret = RTMP_ConnectStream(rtmp, 0);
-    if (ret == TRUE) {
-        LOGI("connect success");
-    }
-    env->ReleaseStringUTFChars(url_, url);
-    return ret;
-}
+int sendAudio(jbyte *bytes, jint len, jlong timestamp, jint i);
 
 // 不包含 67 ,只包含0x00000001 或者0x000001
 int16_t spsStartIndex(int8_t *bytes){
@@ -251,14 +226,19 @@ int16_t sendVideo(int8_t *bytes , int16_t len , long timems) {
 }
 
 
-RTMPPacket *createAudioPacket(int8_t *bytes, jint len, jlong timestamp) {
+RTMPPacket *createAudioPacket(int8_t *bytes, jint len, jlong timestamp, int packetType) {
     // 2个字节表示 音频解码信息
     int bodySize = len + 2;
     RTMPPacket *p = (RTMPPacket *)malloc(sizeof (RTMPPacket));
     RTMPPacket_Alloc(p , bodySize);
     int i = 0;
     p->m_body[i++] = 0xAF;
-    p->m_body[i++] = 0x01;
+    //如果是音频数据的头信息
+    if (packetType == TYPE_HEADER){
+        p->m_body[i++] = 0x00;
+    }else{
+        p->m_body[i++] = 0x01;
+    }
     memcpy(&p->m_body[i++] , bytes , len);
 
 //配置rtmp
@@ -276,9 +256,9 @@ RTMPPacket *createAudioPacket(int8_t *bytes, jint len, jlong timestamp) {
     return p;
 }
 
-int sendAudio(int8_t *bytes , jint len, jlong timestamp) {
+int sendAudio(jbyte *bytes, jint len, jlong timestamp, int packetType) {
     int r;
-    RTMPPacket * packet = createAudioPacket(bytes , len , timestamp);
+    RTMPPacket * packet = createAudioPacket(bytes, len, timestamp, packetType);
     r = sendPacket(packet);
     return r;
 }
@@ -291,17 +271,44 @@ Java_com_hch_bilibili_PackageSender_sendData(JNIEnv *env, jobject thiz, jbyteArr
     int ret;
     jbyte * bytes = env->GetByteArrayElements(data ,NULL);
     switch (type) {
-        case 0:
+        case TYPE_VIDEO:
             ret = sendVideo(bytes , len , timestamp);
             break;
-        case 1:
-            ret = sendAudio(bytes , len , timestamp);
-            break;
-        case 2:
-
+        case TYPE_AUDIO:
+        case TYPE_HEADER:
+            ret = sendAudio(bytes, len, timestamp, type);
             break;
     }
 
     env->ReleaseByteArrayElements(data , bytes , 0);
+    return ret;
+}
+
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_hch_bilibili_MainActivity_connectRtmp(JNIEnv *env, jobject thiz, jstring url_) {
+    //能1  不能2 MK  2.3
+    const char * url = env->GetStringUTFChars(url_, 0);
+    int ret;
+//实例化对象
+    rtmp = RTMP_Alloc();
+    RTMP_Init(rtmp);
+    rtmp->Link.timeout = 10;
+    ret =RTMP_SetupURL(rtmp, (char*)url);
+    if (ret == TRUE) {
+        LOGI("RTMP_SetupURL");
+    }
+    RTMP_EnableWrite(rtmp);
+    LOGI("RTMP_EnableWrite");
+
+    ret = RTMP_Connect(rtmp, 0);
+    if (ret == TRUE) {
+        LOGI("RTMP_Connect ");
+    }
+    ret = RTMP_ConnectStream(rtmp, 0);
+    if (ret == TRUE) {
+        LOGI("connect success");
+    }
+    env->ReleaseStringUTFChars(url_, url);
     return ret;
 }
