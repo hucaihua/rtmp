@@ -36,12 +36,14 @@ public class AudioEncoder extends Thread {
     @SuppressLint("MissingPermission")
     private void configEncodeCodec() {
 
-        //采集音频的参数，采样率44.1khz，单声道
+        //采集音频的参数，采样率44.1khz，bilibili只支持单声道
         MediaFormat mediaFormat = MediaFormat.createAudioFormat(MediaFormat.MIMETYPE_AUDIO_AAC, 44100, 1);
-        //描述要使用的AAC配置文件的键
-        mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+        //描述要使用的AAC配置文件的键 , 这里与我们要传输的音频的质量有关系，如果音频质量高，需要设置较高的profile，一般选择main
+        //如果选择的profile比较小，则可能会出现声音卡顿的问题
+        mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectMain);
         // 比特率 128k 或者64k
-        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128_000);
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128000);
+
         try {
             mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
             mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
