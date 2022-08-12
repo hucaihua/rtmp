@@ -39,7 +39,7 @@ public class AudioEncoder extends Thread {
         //如果选择的profile比较小，则可能会出现声音卡顿的问题
         mediaFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectMain);
         // 比特率 128k 或者64k
-        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128000);
+        mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 128_000);
 
         try {
             mediaCodec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
@@ -111,5 +111,7 @@ public class AudioEncoder extends Thread {
         isLiving = false;
         mediaCodec.stop();
         audioRecord.stop();
+//        mediaCodec.release();
+//        audioRecord.release();
     }
 }

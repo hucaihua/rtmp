@@ -1,7 +1,5 @@
 package com.hch.bilibili;
 
-import android.util.Log;
-
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -40,5 +38,6 @@ public class PackageSender extends Thread{
 
     public void stopLive() {
         isLiving = false;
+        queue.clear();
     }
 }

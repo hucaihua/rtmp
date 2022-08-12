@@ -15,27 +15,25 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author hucaihua@bytedance.com
  */
 public class H264Encoder extends Thread{
-    private final LinkedBlockingQueue<RTMPPackage> queue;
-
-    MediaCodec mediaCodec;
     protected int width;
     protected int height;
-
-
-    private boolean isLiving = false;
-    long startTime = 0;
-
+    protected long startTime = 0;
+    protected boolean isLiving = false;
+    protected long lastKeyFrameTime ;
+    protected MediaCodec mediaCodec;
+    protected LinkedBlockingQueue<RTMPPackage> queue;
+    protected MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
     public H264Encoder(LinkedBlockingQueue<RTMPPackage> queue) {
         this.width = 640;
         this.height = 1920;
         this.queue = queue;
-        mediaCodec = configEncodeCodec();
+        configEncodeCodec();
     }
 
     //帧率 ， I帧间隔 ， 码率 ， 数据格式
     // mediaCodec负责提供surface给mediaProjection使用
-    protected MediaCodec configEncodeCodec(){
+    protected void configEncodeCodec(){
         MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
@@ -49,53 +47,59 @@ public class H264Encoder extends Thread{
         }catch (Exception e){
             e.printStackTrace();
         }
-        return mediaCodec;
     }
 
-    private long lastKeyFrameTime ;
     @Override
     public void run() {
         super.run();
         isLiving = true;
         mediaCodec.start();
 
-        MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (isLiving) {
-
-            //超过2秒，强制输出I帧。
-            if (System.currentTimeMillis() - lastKeyFrameTime > 2000){
-                Bundle b = new Bundle();
-                b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME , 0);
-                mediaCodec.setParameters(b);
-                lastKeyFrameTime = System.currentTimeMillis();
-            }
-
-            try {
-                int outIndex = mediaCodec.dequeueOutputBuffer(info, 10000);
-                byte[] bytes = new byte[info.size];
-                if (outIndex >= 0) {
-                    if (startTime == 0){
-                        startTime = info.presentationTimeUs / 1000;
-                    }
-                    ByteBuffer byteBuffer = mediaCodec.getOutputBuffer(outIndex);
-                    byteBuffer.get(bytes);
-                    FileUtils.writeBytes(bytes);
-                    FileUtils.writeContent(bytes);
-                    queue.offer(new RTMPPackage(bytes, info.presentationTimeUs / 1000 - startTime).setType(RTMPPackage.TYPE_VIDEO));
-                    mediaCodec.releaseOutputBuffer(outIndex, false);
-                    Log.d("hch", "queue offer size:"+bytes.length);
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            input();
+            output();
         }
         Log.d("hch", "live stopped");
+    }
+
+    protected void input() {
+
+    }
+
+    protected void output(){
+        //超过2秒，强制输出I帧。
+        if (System.currentTimeMillis() - lastKeyFrameTime > 2000){
+            Bundle b = new Bundle();
+            b.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME , 0);
+            mediaCodec.setParameters(b);
+            lastKeyFrameTime = System.currentTimeMillis();
+        }
+
+        try {
+            int outIndex = mediaCodec.dequeueOutputBuffer(info, 10000);
+            byte[] bytes = new byte[info.size];
+            if (outIndex >= 0) {
+                if (startTime == 0){
+                    startTime = info.presentationTimeUs / 1000;
+                }
+                ByteBuffer byteBuffer = mediaCodec.getOutputBuffer(outIndex);
+                byteBuffer.get(bytes);
+//                FileUtils.writeBytes(bytes);
+//                FileUtils.writeContent(bytes);
+                queue.offer(new RTMPPackage(bytes, info.presentationTimeUs / 1000 - startTime).setType(RTMPPackage.TYPE_VIDEO));
+                mediaCodec.releaseOutputBuffer(outIndex, false);
+//                Log.d("hch", "queue offer size:"+bytes.length);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
     public void stopLive() {
         isLiving = false;
+        mediaCodec.flush();
+//        mediaCodec.release();
         mediaCodec.stop();
     }
 }

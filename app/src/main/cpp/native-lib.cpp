@@ -59,7 +59,7 @@ int16_t ppsStartIndex(int spsStartIndex , int8_t *bytes , int16_t len){
     return start;
 }
 
-void prepareVideo(int8_t *bytes , int16_t len){
+int prepareVideo(int8_t *bytes , int16_t len){
     if (spspps == nullptr){
         spspps = (LiveSpspps *)malloc(sizeof(LiveSpspps));
     }
@@ -71,7 +71,7 @@ void prepareVideo(int8_t *bytes , int16_t len){
             int16_t ppsStart = ppsStartIndex(spsStart , bytes , len);
             if (ppsStart == -1){
                 LOGI("find pps failed");
-                return ;
+                return FALSE;
             }
             spspps->sps_len = ppsStart - spsStart - ppsFlagLen;
             spspps->sps = static_cast<int8_t *>(malloc(spspps->sps_len));
@@ -84,8 +84,10 @@ void prepareVideo(int8_t *bytes , int16_t len){
             LOGI("sps pps ready -----> spsStart=%d , ppsStart=%d , spsFlagLen=%d , ppsFLagLen=%d , spsLen=%d , "
                  "ppsLen=%d" , spsStart,
                  ppsStart,spsFLagLen,ppsFlagLen,spspps->sps_len,spspps->pps_len);
+            return TRUE;
         }else{
             LOGE("find sps failed");
+            return FALSE;
         }
     }
 }
@@ -196,8 +198,12 @@ int16_t sendVideo(int8_t *bytes , int16_t len , long timems) {
     int r = 0;
     // sps , pps
     if (type == 0x7){
-        prepareVideo(bytes , len);
-        LOGI("prepare sps , pps success");
+        int result = prepareVideo(bytes , len);
+        if (result == TRUE){
+            LOGI("prepare sps , pps success");
+        }else{
+            LOGI("prepare sps , pps failed");
+        }
     }else if (type == 0x5){
         // i frame find , send two packet
         RTMPPacket * packet = createSPSPPSPacket();

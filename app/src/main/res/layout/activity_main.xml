@@ -11,15 +11,26 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="startLive"
-        android:text="开始直播"
+        android:text="开始录屏直播"
+        />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="startCameraLive"
+        android:text="开始视频直播"
         />
 
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:onClick="stopLive"
-        android:text="停止直播"
-        />
+        android:text="停止直播" />
 
+<!--    <com.hch.bilibili.LocalSurfaceView-->
+<!--        android:id="@+id/localSurfaceView"-->
+<!--        android:layout_margin="10dp"-->
+<!--        android:layout_width="250dp"-->
+<!--        android:layout_height="350dp" />-->
 
 </LinearLayout>

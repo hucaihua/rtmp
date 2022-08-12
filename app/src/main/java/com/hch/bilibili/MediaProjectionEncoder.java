@@ -1,7 +1,6 @@
 package com.hch.bilibili;
 
 import android.hardware.display.DisplayManager;
-import android.media.MediaCodec;
 import android.media.projection.MediaProjection;
 import android.view.Surface;
 
@@ -18,9 +17,14 @@ public class MediaProjectionEncoder extends H264Encoder{
     public MediaProjectionEncoder(MediaProjection mediaProjection, LinkedBlockingQueue<RTMPPackage> queue) {
         super(queue);
         this.mediaProjection = mediaProjection;
+    }
+
+    @Override
+    public void run() {
         Surface surface = mediaCodec.createInputSurface();
         //到此已经完成录屏到写入codec提供的surface的过程
         mediaProjection.createVirtualDisplay("project-encoder" ,width,height , 2 ,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC , surface , null , null);
+        super.run();
     }
 }
