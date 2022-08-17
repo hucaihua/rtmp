@@ -1,5 +1,7 @@
 package com.hch.bilibili;
 
+import static com.hch.bilibili.YUVUtil.nv12;
+
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
@@ -16,13 +18,17 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class CameraEncoder extends H264Encoder{
 
     private LinkedBlockingQueue<byte[]> inputQueue = new LinkedBlockingQueue<byte[]>();
+    byte[] yuv;
 
     public CameraEncoder(LinkedBlockingQueue<RTMPPackage> queue) {
         super(queue);
     }
 
     public void input(byte[] data) {
-        inputQueue.offer(data);
+        if (isLiving){
+            Log.d("hch" , "start input data to queue:  " + data.length);
+            inputQueue.offer(data);
+        }
     }
 
     protected void configEncodeCodec(){
@@ -39,14 +45,19 @@ public class CameraEncoder extends H264Encoder{
         }catch (Exception e){
             e.printStackTrace();
         }
+
+        yuv = new byte[width * height * 3 / 2];
     }
 
     @Override
     protected void input() {
-        //读取pcm数据
+        //读取nv21数据，从camera出来的数据不能被codec直接处理，否则会花屏
         byte[] buffer = inputQueue.poll();
-        if (buffer.length > 0){
+        if (buffer != null && buffer.length > 0){
             Log.d("hch" , "input camera buffer len = " + buffer.length);
+
+            nv12 = YUVUtil.nv21toNV12(buffer);
+            YUVUtil.portraitData2Raw(nv12, yuv, width, height);
 
             int inputIndex = mediaCodec.dequeueInputBuffer(1000);
             if (inputIndex >= 0){

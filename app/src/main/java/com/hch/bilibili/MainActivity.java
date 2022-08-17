@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        localSurfaceView = findViewById(R.id.localSurfaceView);
+        localSurfaceView = findViewById(R.id.surfaceview);
+        localSurfaceView.addOnPreviewCallback(this);
 
         checkPermission();
 
@@ -71,10 +72,9 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
             isConnectedToRTMP = true;
             Toast.makeText(this,"连接服务器成功" , Toast.LENGTH_LONG).show();
         }
-
         packageSender = new PackageSender(queue);
         packageSender.start();
-//        audioEncoder = new AudioEncoder(queue);
+
     }
 
     @Override
@@ -85,8 +85,10 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
         mediaProjection = projectionManager.getMediaProjection(resultCode , data);
         projectionEncoder = new MediaProjectionEncoder(mediaProjection,queue);
         projectionEncoder.start();
-
-//        audioEncoder.start();
+        if (audioEncoder == null){
+            audioEncoder = new AudioEncoder(queue);
+            audioEncoder.start();
+        }
     }
 
     private native boolean connectRtmp(String url);
@@ -114,9 +116,9 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
             cameraEncoder.stopLive();
             cameraEncoder = null;
         }
-//        if (audioEncoder != null){
-//            audioEncoder.stopLive();
-//        }
+        if (audioEncoder != null){
+            audioEncoder.stopLive();
+        }
         if (packageSender != null){
             packageSender.stopLive();
         }
@@ -131,12 +133,16 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
         cameraEncoder = new CameraEncoder(queue);
         cameraEncoder.start();
 
-//        audioEncoder.start();
-        localSurfaceView.addOnPreviewCallback(this);
+        if (audioEncoder == null){
+            audioEncoder = new AudioEncoder(queue);
+            audioEncoder.start();
+        }
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        cameraEncoder.input(data);
+        if (cameraEncoder!= null){
+            cameraEncoder.input(data);
+        }
     }
 }

@@ -63,7 +63,7 @@ int prepareVideo(int8_t *bytes , int16_t len){
     if (spspps == nullptr){
         spspps = (LiveSpspps *)malloc(sizeof(LiveSpspps));
     }
-    if (spspps && ((!spspps->pps) || (!spspps->sps))){
+    if (spspps->pps == nullptr || spspps->sps == nullptr){
         // find sps
         int spsStart = spsStartIndex(bytes);
         if (spsStart != 0){
@@ -89,6 +89,8 @@ int prepareVideo(int8_t *bytes , int16_t len){
             LOGE("find sps failed");
             return FALSE;
         }
+    }else{
+        LOGI("spspps is ready");
     }
 }
 
@@ -259,6 +261,7 @@ RTMPPacket *createAudioPacket(int8_t *bytes, jint len, jlong timestamp, int pack
     //给服务器做参考的
     p->m_headerType = RTMP_PACKET_SIZE_LARGE;
     p->m_nInfoField2 = rtmp->m_stream_id;
+    LOGI("createAudioPacket success");
     return p;
 }
 
