@@ -25,6 +25,7 @@ public class CameraEncoder extends H264Encoder{
         this.width = width;
         this.height = height;
         yuv = new byte[width * height * 3 / 2];
+        Log.d("hch" , "size = width "+width +" height " + height);
     }
 
     public void input(byte[] data) {
@@ -35,7 +36,7 @@ public class CameraEncoder extends H264Encoder{
     }
 
     protected void configEncodeCodec(){
-        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
+        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, height, width);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height);
@@ -59,7 +60,7 @@ public class CameraEncoder extends H264Encoder{
         if (buffer != null && buffer.length > 0){
             Log.d("hch" , "input camera buffer len = " + buffer.length);
 
-            YUVUtil.showImage(buffer , width , height);
+//            YUVUtil.showImage(buffer , width , height);
 
             nv12 = YUVUtil.nv21toNV12(buffer);
             YUVUtil.portraitData2Raw(nv12, yuv, width, height);
@@ -67,8 +68,8 @@ public class CameraEncoder extends H264Encoder{
             int inputIndex = mediaCodec.dequeueInputBuffer(1000);
             if (inputIndex >= 0){
                 ByteBuffer byteBuffer = mediaCodec.getInputBuffer(inputIndex);
-                byteBuffer.put(buffer , 0 , buffer.length);
-                mediaCodec.queueInputBuffer(inputIndex , 0 , buffer.length , System.nanoTime()/1000 , 0);
+                byteBuffer.put(yuv , 0 , buffer.length);
+                mediaCodec.queueInputBuffer(inputIndex , 0 , yuv.length , System.nanoTime()/1000 , 0);
             }
         }
     }
