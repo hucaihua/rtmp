@@ -3,6 +3,7 @@ package com.hch.bilibili;
 import android.content.Context;
 import android.hardware.Camera;
 import android.util.AttributeSet;
+import android.util.Size;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -15,7 +16,7 @@ public class LocalSurfaceView extends SurfaceView implements SurfaceHolder.Callb
     private Camera mCamera;
     private Camera.Size size;
     byte[] buffer;
-    private Camera.PreviewCallback onPreviewCallback;
+    private OnPreview onPreviewCallback;
 
     public LocalSurfaceView(Context context) {
         super(context);
@@ -27,14 +28,14 @@ public class LocalSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     }
 
-    public void addOnPreviewCallback(Camera.PreviewCallback callback){
+    public void addOnPreviewCallback(OnPreview callback){
         this.onPreviewCallback = callback;
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if (onPreviewCallback != null){
-            onPreviewCallback.onPreviewFrame(data,camera);
+            onPreviewCallback.onPreviewFrame(data,size);
         }
 
         mCamera.addCallbackBuffer(data);
@@ -72,5 +73,9 @@ public class LocalSurfaceView extends SurfaceView implements SurfaceHolder.Callb
 
     public void removePreviewCallback() {
         this.onPreviewCallback = null;
+    }
+
+    interface OnPreview{
+        void onPreviewFrame(byte[] data, Camera.Size size);
     }
 }

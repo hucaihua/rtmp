@@ -60,10 +60,8 @@ int16_t ppsStartIndex(int spsStartIndex , int8_t *bytes , int16_t len){
 }
 
 int prepareVideo(int8_t *bytes , int16_t len){
-    if (spspps == nullptr){
+    if (spspps == nullptr|| spspps->pps == nullptr || spspps->sps == nullptr){
         spspps = (LiveSpspps *)malloc(sizeof(LiveSpspps));
-    }
-    if (spspps->pps == nullptr || spspps->sps == nullptr){
         // find sps
         int spsStart = spsStartIndex(bytes);
         if (spsStart != 0){

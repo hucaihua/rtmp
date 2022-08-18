@@ -8,6 +8,7 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -15,9 +16,10 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.File;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class MainActivity extends AppCompatActivity implements Camera.PreviewCallback{
+public class MainActivity extends AppCompatActivity implements LocalSurfaceView.OnPreview {
 
     // Used to load the 'bilybily' library on application startup.
     static {
@@ -74,7 +76,6 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
         }
         packageSender = new PackageSender(queue);
         packageSender.start();
-
     }
 
     @Override
@@ -130,7 +131,6 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
             Toast.makeText(this,"没有连接服务器" , Toast.LENGTH_LONG).show();
         }
         isProjection = false;
-        cameraEncoder = new CameraEncoder(queue);
         cameraEncoder.start();
 
         if (audioEncoder == null){
@@ -140,9 +140,11 @@ public class MainActivity extends AppCompatActivity implements Camera.PreviewCal
     }
 
     @Override
-    public void onPreviewFrame(byte[] data, Camera camera) {
-        if (cameraEncoder!= null){
-            cameraEncoder.input(data);
+    public void onPreviewFrame(byte[] data, Camera.Size size) {
+        if (cameraEncoder == null){
+            cameraEncoder = new CameraEncoder(queue , size.width , size.height);
+
         }
+        cameraEncoder.input(data);
     }
 }

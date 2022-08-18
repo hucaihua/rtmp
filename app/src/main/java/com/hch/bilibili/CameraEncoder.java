@@ -20,8 +20,11 @@ public class CameraEncoder extends H264Encoder{
     private LinkedBlockingQueue<byte[]> inputQueue = new LinkedBlockingQueue<byte[]>();
     byte[] yuv;
 
-    public CameraEncoder(LinkedBlockingQueue<RTMPPackage> queue) {
+    public CameraEncoder(LinkedBlockingQueue<RTMPPackage> queue, int width, int height) {
         super(queue);
+        this.width = width;
+        this.height = height;
+        yuv = new byte[width * height * 3 / 2];
     }
 
     public void input(byte[] data) {
@@ -46,7 +49,7 @@ public class CameraEncoder extends H264Encoder{
             e.printStackTrace();
         }
 
-        yuv = new byte[width * height * 3 / 2];
+
     }
 
     @Override
@@ -55,6 +58,8 @@ public class CameraEncoder extends H264Encoder{
         byte[] buffer = inputQueue.poll();
         if (buffer != null && buffer.length > 0){
             Log.d("hch" , "input camera buffer len = " + buffer.length);
+
+            YUVUtil.showImage(buffer , width , height);
 
             nv12 = YUVUtil.nv21toNV12(buffer);
             YUVUtil.portraitData2Raw(nv12, yuv, width, height);

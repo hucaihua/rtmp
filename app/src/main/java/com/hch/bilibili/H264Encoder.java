@@ -34,7 +34,7 @@ public class H264Encoder extends Thread{
     //帧率 ， I帧间隔 ， 码率 ， 数据格式
     // mediaCodec负责提供surface给mediaProjection使用
     protected void configEncodeCodec(){
-        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
+        MediaFormat mediaFormat = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, height, width);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height);
