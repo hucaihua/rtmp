@@ -40,7 +40,7 @@ public class CameraEncoder extends H264Encoder{
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height);
-        //指定编码的数据格式是由surface决定的。
+        //指定编码的数据格式是nv21
         mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT , MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
 
         try{
@@ -59,9 +59,6 @@ public class CameraEncoder extends H264Encoder{
         byte[] buffer = inputQueue.poll();
         if (buffer != null && buffer.length > 0){
             Log.d("hch" , "input camera buffer len = " + buffer.length);
-
-//            YUVUtil.showImage(buffer , width , height);
-
             nv12 = YUVUtil.nv21toNV12(buffer);
             YUVUtil.portraitData2Raw(nv12, yuv, width, height);
 

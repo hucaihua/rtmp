@@ -111,7 +111,7 @@ public class AudioEncoder extends Thread {
         isLiving = false;
         mediaCodec.stop();
         audioRecord.stop();
-//        mediaCodec.release();
-//        audioRecord.release();
+        mediaCodec.release();
+        audioRecord.release();
     }
 }
