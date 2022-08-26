@@ -24,9 +24,9 @@ public class H264Encoder extends Thread{
     protected LinkedBlockingQueue<RTMPPackage> queue;
     protected MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
-    public H264Encoder(LinkedBlockingQueue<RTMPPackage> queue) {
-        this.width = 640;
-        this.height = 1920;
+    public H264Encoder(LinkedBlockingQueue<RTMPPackage> queue, int width, int height) {
+        this.width = width;
+        this.height = height;
         this.queue = queue;
     }
 

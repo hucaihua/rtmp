@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Toast;
 
@@ -19,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class MainActivity extends AppCompatActivity implements LocalSurfaceView.OnPreview {
+public class MainActivity extends AppCompatActivity implements Camera.PreviewCallback, CameraHelper.OnChangedSizeListener {
 
     // Used to load the 'bilybily' library on application startup.
     static {
@@ -32,7 +33,10 @@ public class MainActivity extends AppCompatActivity implements LocalSurfaceView.
     CameraEncoder cameraEncoder;
     boolean isProjection = false;
 
-    LocalSurfaceView localSurfaceView;
+//    LocalSurfaceView localSurfaceView;
+
+    SurfaceView surfaceView;
+    CameraHelper cameraHelper;
 
     private LinkedBlockingQueue<RTMPPackage> queue = new LinkedBlockingQueue<>();
     PackageSender packageSender;
@@ -40,6 +44,8 @@ public class MainActivity extends AppCompatActivity implements LocalSurfaceView.
     private static String bilibilyRTMPURL="rtmp://live-push.bilivideo.com/live-bvc/?streamname=live_212228851_21446951&key=9a02e8eb340ba9a2c825887422dda816&schedule=rtmp&pflag=1";
 
     boolean isConnectedToRTMP = false;
+    private int mPreviewWidth;
+    private int mPreviewHeight;
 
     public boolean checkPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
@@ -60,8 +66,15 @@ public class MainActivity extends AppCompatActivity implements LocalSurfaceView.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        localSurfaceView = findViewById(R.id.surfaceview);
-        localSurfaceView.addOnPreviewCallback(this);
+//        localSurfaceView = findViewById(R.id.surfaceview);
+//        localSurfaceView.addOnPreviewCallback(this);
+
+        cameraHelper = new CameraHelper(this,Camera.CameraInfo.CAMERA_FACING_FRONT,480,640);
+        surfaceView = findViewById(R.id.surfaceview);
+        cameraHelper.setPreviewCallback(this);
+        cameraHelper.setPreviewDisplay(surfaceView.getHolder());
+        cameraHelper.setOnChangedSizeListener(this);
+        cameraHelper.switchCamera();
 
         checkPermission();
 
@@ -123,7 +136,8 @@ public class MainActivity extends AppCompatActivity implements LocalSurfaceView.
         if (packageSender != null){
             packageSender.stopLive();
         }
-        localSurfaceView.removePreviewCallback();
+//        localSurfaceView.removePreviewCallback();
+
     }
 
     public void startCameraLive(View view) {
@@ -139,12 +153,27 @@ public class MainActivity extends AppCompatActivity implements LocalSurfaceView.
         }
     }
 
+//    @Override
+//    public void onPreviewFrame(byte[] data, Camera.Size size) {
+//        if (cameraEncoder == null){
+//            cameraEncoder = new CameraEncoder(queue , size.width , size.height);
+//
+//        }
+//        cameraEncoder.input(data);
+//    }
+
     @Override
-    public void onPreviewFrame(byte[] data, Camera.Size size) {
+    public void onPreviewFrame(byte[] data, Camera camera) {
         if (cameraEncoder == null){
-            cameraEncoder = new CameraEncoder(queue , size.width , size.height);
+            cameraEncoder = new CameraEncoder(queue , mPreviewWidth , mPreviewHeight);
 
         }
         cameraEncoder.input(data);
+    }
+
+    @Override
+    public void onChanged(int w, int h) {
+        mPreviewWidth = w;
+        mPreviewHeight = h;
     }
 }

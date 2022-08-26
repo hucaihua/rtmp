@@ -21,7 +21,7 @@ public class CameraEncoder extends H264Encoder{
     byte[] yuv;
 
     public CameraEncoder(LinkedBlockingQueue<RTMPPackage> queue, int width, int height) {
-        super(queue);
+        super(queue , width , height);
         this.width = width;
         this.height = height;
         yuv = new byte[width * height * 3 / 2];

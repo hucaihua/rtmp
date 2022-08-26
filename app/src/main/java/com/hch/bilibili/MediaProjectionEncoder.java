@@ -15,7 +15,7 @@ public class MediaProjectionEncoder extends H264Encoder{
     MediaProjection mediaProjection;
 
     public MediaProjectionEncoder(MediaProjection mediaProjection, LinkedBlockingQueue<RTMPPackage> queue) {
-        super(queue);
+        super(queue, 640, 1920);
         this.mediaProjection = mediaProjection;
     }
 
@@ -23,7 +23,7 @@ public class MediaProjectionEncoder extends H264Encoder{
     public void run() {
         Surface surface = mediaCodec.createInputSurface();
         //到此已经完成录屏到写入codec提供的surface的过程
-        mediaProjection.createVirtualDisplay("project-encoder" ,width,height , 2 ,
+        mediaProjection.createVirtualDisplay("project-encoder" , width , height , 2 ,
                 DisplayManager.VIRTUAL_DISPLAY_FLAG_PUBLIC , surface , null , null);
         super.run();
     }
