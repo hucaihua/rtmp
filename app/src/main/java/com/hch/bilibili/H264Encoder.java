@@ -37,7 +37,7 @@ public class H264Encoder extends Thread{
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height);
-        //指定编码的数据格式是由surface决定的。
+        //指定输入编码的数据格式是由surface决定的。
         mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT , MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
 
         try{

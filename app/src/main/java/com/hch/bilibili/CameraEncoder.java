@@ -40,7 +40,9 @@ public class CameraEncoder extends H264Encoder{
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE , 20);
         mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 30);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, width * height);
-        //指定编码的数据格式是nv21
+        //指定输入编码的数据格式是yuv420中的几种，不固定，包含
+        // COLOR_FORMATYUV411PLANAR、COLOR_FORMATYUV411PACKEDPLANAR、COLOR_FORMATYUV420PLANAR、
+        // COLOR_FORMATYUV420PACKEDPLANAR,COLOR_FORMATYUV420SEMIPLANAR 和 COLOR_FORMATYUV420PACKEDSEMIPLANAR
         mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT , MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
 
         try{
